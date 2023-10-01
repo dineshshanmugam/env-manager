@@ -14,15 +14,24 @@
     </actions>
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Env-manager</name>
+    <name>Environment manager</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor>No Company</vendor>
+    <vendor>தினேஷ்</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <description><![CDATA[ simple plugin to manage multiple env variable to be used in Run Configurations ]]></description>
+    <description><![CDATA[ simple plugin to manage multiple env variable to be used in Run Configurations.
+    helps you to manage environment variables across different environments.
+    It can convert environment variables to JSON format or to a string format to update Run configurations in
+    IDEA, and use to generate commands to set environment variables.
+ <ul>
+  <li>Manage environment variables for different environments</li>
+  <li>Convert environment variables to JSON format or to a string format</li>
+  <li>Use to manage variables for Run configurations in IDE </li>
+</ul>
+]]></description>
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->

@@ -3,9 +3,9 @@ package com.envr.manage.envmanager.models;
 import java.io.Serializable;
 import java.util.*;
 
-public class EnvVars implements Serializable {
+public class EnvironmentVariables implements Serializable {
     private static final long serialVersionUID = 0L;
-    public EnvVars(String envName) {
+    public EnvironmentVariables(String envName) {
         this.envName = envName;
         this.envTags = new ArrayList<>();
         this.environment = new HashMap<>();
@@ -40,9 +40,9 @@ public class EnvVars implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof EnvVars)) return false;
+        if (!(o instanceof EnvironmentVariables)) return false;
 
-        EnvVars that = (EnvVars) o;
+        EnvironmentVariables that = (EnvironmentVariables) o;
 
         return Objects.equals(envName, that.envName);
     }

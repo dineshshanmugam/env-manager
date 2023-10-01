@@ -1,7 +1,8 @@
 package com.envr.manage.envmanager.ui;
 
+import com.envr.manage.envmanager.exception.AppException;
 import com.envr.manage.envmanager.service.FileStorage;
-import com.envr.manage.envmanager.service.PanelStateObj;
+import com.envr.manage.envmanager.service.EnvironmentState;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -17,69 +18,87 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
-import static com.envr.manage.envmanager.utils.AppConstants.ENV_LOC;
+import static com.envr.manage.envmanager.utils.AppConstants.ENV_LOCATION_PROPERTY;
 import static com.envr.manage.envmanager.utils.AppConstants.ENV_MANAGER_DEFAULT_FILE_NAME;
 import static javax.swing.SwingConstants.TOP;
 
 public class EnvManageDialog extends DialogWrapper {
     private final Logger log = Logger.getInstance(EnvManageDialog.class.getName());
-    private final PanelStateObj panelStateObj;
-    private final JComboBox<DefaultComboBoxModel<String>> environmentsList;
+    private final EnvironmentState panelStateObj;
+    private final JComboBox<DefaultComboBoxModel<String>> environmentList;
     private final JButton newEnv;
     private final JButton deleteEnv;
     private final JBTabbedPane tabbedPane;
-    private final Panel1 panel1;
-    private final Panel2 panel2;
-    private final Panel3 panel3;
-    private final JBPanel panel0;
+    private final MainPanel environmentEditorPanel;
+    private final UtilityPanel utility;
+    private final InfoPanel infoPanel;
+    private final JBPanel environmentSelectorPanel;
     private final JBPanel mainFrame;
     private String envFileLocation;
     private FileStorage envVariableStorage;
-
+    private final DefaultComboBoxModel<String> envItems;
     public EnvManageDialog() {
         super(true);
 
-        mainFrame = new JBPanel();
-        panel0 = new JBPanel();
-
-        final String manageEnv = PathManager.getConfigPath() + File.separator + "options" + File.separator + ENV_MANAGER_DEFAULT_FILE_NAME;
-        envFileLocation = PropertiesComponent.getInstance().getValue(ENV_LOC);
-
-        if (envFileLocation == null) {
-            PropertiesComponent.getInstance().setValue(ENV_LOC, manageEnv);
-            envFileLocation = manageEnv;
-        } else {
-            log.debug(envFileLocation);
-        }
+        mainFrame = new JBPanel<>();
+        environmentSelectorPanel = new JBPanel<>();
+        envFileLocation = getEnvFileLocation();
 
         char[] pin = getPin("Enter PIN");
 
         envVariableStorage = new FileStorage(envFileLocation, pin);
-        panelStateObj = new PanelStateObj(envVariableStorage);
+        panelStateObj = new EnvironmentState(envVariableStorage);
 
         tabbedPane = new com.intellij.ui.components.JBTabbedPane();
 
-        panel1 = new Panel1(panelStateObj);
-        tabbedPane.add("Manage", panel1.getEnvPanel());
-        panel2 = new Panel2(panelStateObj);
-        tabbedPane.add("Utility", panel2.getEnvPanel());
-        panel3 = new Panel3(panelStateObj);
-        tabbedPane.add("Info", panel3.getEnvPanel());
+        environmentEditorPanel = new MainPanel(panelStateObj);
+        tabbedPane.add("Manage", environmentEditorPanel.getEnvPanel());
+        utility = new UtilityPanel(panelStateObj);
+        tabbedPane.add("Utility", utility.getEnvPanel());
+        infoPanel = new InfoPanel();
+        tabbedPane.add("Info", infoPanel.getEnvPanel());
+        envItems = new DefaultComboBoxModel(this.panelStateObj.myEnvironmentNames.toArray());
+        environmentList = new com.intellij.openapi.ui.ComboBox(envItems);
+        environmentList.setEditable(false);
+        environmentList.setSelectedIndex(-1);
 
-        final DefaultComboBoxModel<String> envItems = new DefaultComboBoxModel(this.panelStateObj.myEnvironmentNames.toArray());
-        environmentsList = new com.intellij.openapi.ui.ComboBox(envItems);
-        environmentsList.setEditable(false);
-        environmentsList.setSelectedIndex(-1);
-
-        environmentsList.addActionListener(e -> {
-            panelStateObj.setCurrentEnv((String) environmentsList.getSelectedItem());
-            panel1.updateEnv();
-            panel2.updateEnv();
+        environmentList.addActionListener(e -> {
+            panelStateObj.setCurrentEnv((String) environmentList.getSelectedItem());
+            environmentEditorPanel.updateEnv();
+            utility.updateEnv();
         });
 
         newEnv = new JButton("Clone");
         deleteEnv = new JButton("Delete");
 
+        addNewEnvironmentAction();
+        addDeleteEnvironmentAction();
+
+        environmentSelectorPanel.setLayout(new BorderLayout());
+        environmentSelectorPanel.add(environmentList, BorderLayout.CENTER);
+        environmentSelectorPanel.add(newEnv, BorderLayout.LINE_START);
+        environmentSelectorPanel.add(deleteEnv, BorderLayout.LINE_END);
+        environmentSelectorPanel.setMaximumSize(new Dimension(800, 50));
+
+        mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
+        mainFrame.add(environmentSelectorPanel);
+        mainFrame.add(tabbedPane);
+        mainFrame.setSize(800, 700);
+
+        tabbedPane.setTabPlacement(TOP);
+        tabbedPane.addChangeListener(changeEvent -> {
+            JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
+            int index = sourceTabbedPane.getSelectedIndex();
+            if (index == 1) {
+                utility.updateEnv();
+            } else if (index == 0) {
+                environmentEditorPanel.updateEnv();
+            }
+        });
+        init();
+    }
+
+    private void addNewEnvironmentAction(){
         newEnv.addActionListener(action -> {
             String newEnvName = JOptionPane.showInputDialog("Enter a new name");
             if (panelStateObj.myEnvironmentNames.contains(newEnvName) || newEnvName == null || newEnvName.isEmpty() || newEnvName.isBlank()) {
@@ -88,8 +107,8 @@ public class EnvManageDialog extends DialogWrapper {
                 panelStateObj.createEnvironment(newEnvName);
                 envItems.addElement(newEnvName);
                 envItems.setSelectedItem(newEnvName);
-                panel1.updateEnv();
-                panel2.updateEnv();
+                environmentEditorPanel.updateEnv();
+                utility.updateEnv();
                 try {
                     panelStateObj.backupEnvironments();
                     panelStateObj.saveEnvironments();
@@ -99,46 +118,36 @@ public class EnvManageDialog extends DialogWrapper {
 
             }
         });
+    }
 
+    public void addDeleteEnvironmentAction(){
         deleteEnv.addActionListener(action -> {
             if (panelStateObj.getCurrentEnv() != null || !panelStateObj.getCurrentEnv().isBlank()) {
                 try {
                     if (panelStateObj.deleteEnvironment(panelStateObj.getCurrentEnv())) {
                         envItems.removeElement(panelStateObj.getCurrentEnv());
-                        environmentsList.setSelectedIndex(-1);
+                        environmentList.setSelectedIndex(-1);
                     } else {
                         JOptionPane.showMessageDialog(tabbedPane, "Could Not Delete this (At least one env needed)");
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new AppException(e);
                 }
             }
         });
-
-        panel0.setLayout(new BorderLayout());
-        panel0.add(environmentsList, BorderLayout.CENTER);
-        panel0.add(newEnv, BorderLayout.LINE_START);
-        panel0.add(deleteEnv, BorderLayout.LINE_END);
-        panel0.setMaximumSize(new Dimension(800, 50));
-
-        mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
-        mainFrame.add(panel0);
-        mainFrame.add(tabbedPane);
-        mainFrame.setSize(800, 700);
-
-        tabbedPane.setTabPlacement(TOP);
-        tabbedPane.addChangeListener(changeEvent -> {
-            JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
-            int index = sourceTabbedPane.getSelectedIndex();
-            if (index == 1) {
-                panel2.updateEnv();
-            } else if (index == 0) {
-                panel1.updateEnv();
-            }
-        });
-        init();
+    }
+    private String getDefaultStorageLocation(){
+        return PathManager.getConfigPath() + File.separator + "options" + File.separator + ENV_MANAGER_DEFAULT_FILE_NAME;
     }
 
+    private String getEnvFileLocation(){
+        if (PropertiesComponent.getInstance().getValue(ENV_LOCATION_PROPERTY) == null) {
+            PropertiesComponent.getInstance().setValue(ENV_LOCATION_PROPERTY, getDefaultStorageLocation());
+            return getDefaultStorageLocation();
+        } else {
+          return PropertiesComponent.getInstance().getValue(ENV_LOCATION_PROPERTY);
+        }
+    }
     public char[] getPin(String message) {
         String pinString = Messages.showPasswordDialog(null, message, "Enter PIN (Default 0000)", null);
         if (pinString == null || pinString.isBlank() || pinString.isEmpty()) {

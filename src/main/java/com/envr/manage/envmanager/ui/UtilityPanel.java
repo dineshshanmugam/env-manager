@@ -1,7 +1,7 @@
 package com.envr.manage.envmanager.ui;
 
-import com.envr.manage.envmanager.models.EnvVars;
-import com.envr.manage.envmanager.service.PanelStateObj;
+import com.envr.manage.envmanager.models.EnvironmentVariables;
+import com.envr.manage.envmanager.service.EnvironmentState;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -16,8 +16,8 @@ import static com.envr.manage.envmanager.utils.Utils.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
-public class Panel2 implements PanelSample {
-    private final Logger log = Logger.getInstance(Panel2.class.getName());
+public class UtilityPanel implements PanelSample {
+    private final Logger log = Logger.getInstance(UtilityPanel.class.getName());
     private final JBTextArea envEditArea;
     private final JBTextArea appLogArea;
     private final JLabel lineNumberLabel = new JLabel("Line Number:");
@@ -30,11 +30,11 @@ public class Panel2 implements PanelSample {
     private final JBScrollPane envEditAreaScroll;
     private final JBScrollPane appLogAreaScroll;
 
-    private final PanelStateObj panelStateObj;
+    private final EnvironmentState panelStateObj;
     private final JBPanel envVariablePanel2;
-    Panel2(PanelStateObj panelStateObj){
+    UtilityPanel(EnvironmentState panelStateObj){
         this.panelStateObj = panelStateObj;
-        envVariablePanel2 = new JBPanel();
+        envVariablePanel2 = new JBPanel<>();
         envEditArea = new JBTextArea("");
         appLogArea = new JBTextArea("");
         getJson = new JButton("ToJson");
@@ -82,7 +82,7 @@ public class Panel2 implements PanelSample {
 
         getJson.addActionListener(e -> {
             log.debug("saving current env " + panelStateObj.getCurrentEnv());
-            EnvVars tempEnvVars = new EnvVars(panelStateObj.getCurrentEnv());
+            EnvironmentVariables tempEnvVars = new EnvironmentVariables(panelStateObj.getCurrentEnv());
             if (panelStateObj.validateEnvString(tempEnvVars,envEditArea.getText())) {
                 appLogArea.setText(toJson(tempEnvVars.getEnvironment()));
             } else {

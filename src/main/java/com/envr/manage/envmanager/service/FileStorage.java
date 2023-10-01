@@ -1,7 +1,6 @@
 package com.envr.manage.envmanager.service;
 
-import com.envr.manage.envmanager.models.EnvVars;
-import com.google.type.DateTime;
+import com.envr.manage.envmanager.models.EnvironmentVariables;
 import com.intellij.openapi.diagnostic.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.SealedObject;
@@ -23,18 +22,18 @@ import java.util.Map;
 /**
  * save and retrieve from local file on disk
  */
-public class FileStorage implements EnvVariableStorage {
+public class FileStorage implements EnvironmentVariableStorage {
     private static final String AES = "AES";
     private final char[] pin;
-    private final String envFileLocation;
+    private final String environmentFileLocation;
     private final Logger log = Logger.getInstance(FileStorage.class.getName());
 
     public FileStorage(String envFileLocation,char[] pin) {
-        this.envFileLocation = envFileLocation;
+        this.environmentFileLocation = envFileLocation;
         this.pin = pin;
     }
 
-    public void saveEnvironments(HashSet<EnvVars> myEnvironments) throws IOException {
+    public void saveEnvironments(HashSet<EnvironmentVariables> myEnvironments) throws IOException {
         try {
             byte[] salt = new byte[16];
             SecureRandom random = new SecureRandom();
@@ -45,7 +44,7 @@ public class FileStorage implements EnvVariableStorage {
             data.put("SALT", salt);
 
             ObjectOutputStream oos;
-            try (FileOutputStream fos = new FileOutputStream(envFileLocation)) {
+            try (FileOutputStream fos = new FileOutputStream(environmentFileLocation)) {
                 oos = new ObjectOutputStream(fos);
                 oos.writeObject(data);
                 oos.close();
@@ -59,9 +58,9 @@ public class FileStorage implements EnvVariableStorage {
     @Override
     public void backupEnvironments() throws IOException {
         try{
-            Path source = Path.of(envFileLocation);
+            Path source = Path.of(environmentFileLocation);
             if(Files.exists(source)){
-                String targetPAth = envFileLocation + Instant.now().getEpochSecond();
+                String targetPAth = environmentFileLocation + Instant.now().getEpochSecond();
                 Files.copy(source,Path.of(targetPAth));
             }
 
@@ -107,16 +106,16 @@ public class FileStorage implements EnvVariableStorage {
         return null;
     }
 
-    public HashSet<EnvVars> getEnvironments() throws IOException, ClassNotFoundException {
+    public HashSet<EnvironmentVariables> getEnvironments() throws IOException, ClassNotFoundException {
         try {
             BufferedInputStream bufferedInputStream;
-            try (FileInputStream fileInputStream = new FileInputStream(envFileLocation)) {
+            try (FileInputStream fileInputStream = new FileInputStream(environmentFileLocation)) {
                 bufferedInputStream = new BufferedInputStream(fileInputStream);
                 ObjectInputStream inputStream = new ObjectInputStream(bufferedInputStream);
                 Map<String, Object> data = (Map<String, Object>) inputStream.readObject();
                 SealedObject obj = (SealedObject) data.get("DATA");
                 byte[] salt = (byte[]) data.get("SALT");
-                return (HashSet<EnvVars>) decryptObject(obj, salt);
+                return (HashSet<EnvironmentVariables>) decryptObject(obj, salt);
             }
         } catch (Exception e) {
             log.error(e.getMessage(),e);

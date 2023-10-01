@@ -1,6 +1,5 @@
 package com.envr.manage.envmanager.ui;
 
-import com.envr.manage.envmanager.service.PanelStateObj;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -10,20 +9,19 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 
-import static com.envr.manage.envmanager.utils.AppConstants.ENV_LOC;
+import static com.envr.manage.envmanager.utils.AppConstants.ENV_LOCATION_PROPERTY;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
-public class Panel3 implements PanelSample {
+public class InfoPanel implements PanelSample {
     private static final String PREFIX_TEXT_FILE_LOC = "File Location: ";
     private final JBPanel envVariablePanel3;
-    private final PanelStateObj panelStateObj;
+
     private final JBTextArea fileLocationLabel = new JBTextArea();
     private final JBTextArea systemEnvVariable = new JBTextArea();
     private final JBScrollPane envScroll;
-    public Panel3(PanelStateObj inPanelStateObj) {
-        panelStateObj = inPanelStateObj;
-        envVariablePanel3 = new JBPanel();
+    public InfoPanel() {
+        envVariablePanel3 = new JBPanel<>();
         envVariablePanel3.setBounds(55, 15, 10, 10);
         envVariablePanel3.setLayout(null);
 
@@ -33,7 +31,7 @@ public class Panel3 implements PanelSample {
         fileLocationLabel.setBorder(blackLine);
         fileLocationLabel.setEditable(false);
         fileLocationLabel.setAutoscrolls(true);
-        fileLocationLabel.setText(PREFIX_TEXT_FILE_LOC + PropertiesComponent.getInstance().getValue(ENV_LOC));
+        fileLocationLabel.setText(PREFIX_TEXT_FILE_LOC + PropertiesComponent.getInstance().getValue(ENV_LOCATION_PROPERTY));
 
         final String[] systemEnvVars = {"System Vars: \n"};
         System.getenv().forEach((k,v)-> systemEnvVars[0] = systemEnvVars[0] +  k + "=" + v + ";\n");

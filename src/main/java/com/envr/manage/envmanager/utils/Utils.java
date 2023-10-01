@@ -8,7 +8,7 @@ import java.util.Map;
 import static com.envr.manage.envmanager.utils.AppConstants.NEW_LINE;
 
 public class Utils {
-
+    private Utils(){}
     public static String toSingleLine(String multiLineStr) {
         return multiLineStr.replace("\n", "");
     }

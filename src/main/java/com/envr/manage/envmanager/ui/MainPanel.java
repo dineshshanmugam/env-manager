@@ -1,12 +1,13 @@
 package com.envr.manage.envmanager.ui;
 
-import com.envr.manage.envmanager.models.EnvVars;
+import com.envr.manage.envmanager.exception.AppException;
+import com.envr.manage.envmanager.models.EnvironmentVariables;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import com.envr.manage.envmanager.service.PanelStateObj;
+import com.envr.manage.envmanager.service.EnvironmentState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -20,9 +21,9 @@ import static javax.swing.BoxLayout.Y_AXIS;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
-public class Panel1 implements PanelSample {
+public class MainPanel implements PanelSample {
 
-    private final Logger log = Logger.getInstance(Panel1.class.getName());
+    private final Logger log = Logger.getInstance(MainPanel.class.getName());
     private final JBTextArea envEditArea;
     private final JBTextArea appLogArea;
     private final JBLabel lineNumberLabel = new JBLabel("Line Number:");
@@ -34,13 +35,13 @@ public class Panel1 implements PanelSample {
 
     private final JBPanel panelRow1 = new JBPanel();
     private final JBPanel panelRow2 = new JBPanel();
-    private final PanelStateObj panelStateObj;
+    private final EnvironmentState panelStateObj;
     private final JBPanel envVariablePanel1;
 
-    Panel1(PanelStateObj panelStateObj) {
+    MainPanel(EnvironmentState panelStateObj) {
 
         this.panelStateObj = panelStateObj;
-        envVariablePanel1 = new JBPanel();
+        envVariablePanel1 = new JBPanel<>();
         envEditArea = new JBTextArea("");
         appLogArea = new JBTextArea("");
         saveEnv = new JButton("Save");
@@ -81,15 +82,15 @@ public class Panel1 implements PanelSample {
                 log.debug("saving current env " + panelStateObj.getCurrentEnv());
 
                 panelStateObj.setCurrentDataStr(envEditArea.getText());
-                EnvVars tempEnvVars = new EnvVars(panelStateObj.getCurrentEnv());
+                EnvironmentVariables tempEnvVars = new EnvironmentVariables(panelStateObj.getCurrentEnv());
                 if (panelStateObj.validateEnvString(tempEnvVars, panelStateObj.getCurrentDataStr())) {
                     log.debug("saving the valid Environment " + panelStateObj.getCurrentEnv());
-                    panelStateObj.getMyEnvironments().remove(tempEnvVars);
-                    panelStateObj.getMyEnvironments().add(tempEnvVars);
+                    panelStateObj.getLoadedEnvironments().remove(tempEnvVars);
+                    panelStateObj.getLoadedEnvironments().add(tempEnvVars);
                     try {
                         panelStateObj.saveEnvironments();
                     } catch (Exception ex) {
-                        throw new RuntimeException(ex);
+                        throw new AppException(ex);
                     }
                     noteLabel.setVisible(false);
                     JOptionPane.showMessageDialog(envVariablePanel1, "Saved the env " + panelStateObj.getCurrentEnv());

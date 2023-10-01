@@ -3,16 +3,15 @@ package com.envr.manage.envmanager;
 import com.envr.manage.envmanager.ui.EnvManageDialog;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
 
 public class ManageEnvironmentsAction extends AnAction implements DumbAware {
-     Logger logger = Logger.getInstance(ManageEnvironmentsAction.class.getName());
+
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         EnvManageDialog dialog = new EnvManageDialog();
-        dialog.show(); // Show the dialog
+        dialog.show();
     }
     @Override
     public void update(AnActionEvent e) {
